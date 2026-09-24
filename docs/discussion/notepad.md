@@ -166,7 +166,7 @@ Decisions:
 - The API and workers may share the same pipeline-service code and container image while running as separate processes.
 - A real message queue will be used so acknowledgements, retries, backpressure, and failure handling can be learned and observed. The broker and worker framework remain to be selected after delivery requirements are specified.
 - Database-to-queue transitions require a transactional outbox, and consumers must be idempotent because queued delivery is expected to be at least once.
-- Original and derived document artifacts belong in object storage; PostgreSQL stores their identities, metadata, hashes, state, relationships, and lineage.
+- Original and derived document artifacts use an artifact-storage abstraction. The initial local implementation uses the filesystem on a persistent Docker named volume; PostgreSQL stores artifact identities, relative keys, metadata, hashes, state, relationships, and lineage. Remote object storage is deferred.
 - Deterministic acquisition, parsing, validation, chunking, and indexing are kept separate from optional agentic enrichment and answer generation.
 
 Verified local toolchain:
@@ -196,7 +196,7 @@ Decision:
 - Creating a run writes the run, initial stage graph, and an outbox event in one transaction. FastAPI returns `202 Accepted` with the run identity.
 - An outbox publisher transfers committed work to the queue. Separate workers execute durable stages.
 - Queue messages carry versioned identifiers, idempotency keys, and trace context, not document bodies.
-- Stage outputs are immutable artifacts in object storage with PostgreSQL metadata and lineage edges.
+- Stage outputs are immutable artifacts in the configured artifact store with PostgreSQL metadata and lineage edges.
 - Every stage has explicit input/output contracts, configuration hashes, retry and timeout policies, validation results, telemetry, and terminal state.
 - Stage attempts are separate from logical stages so retries do not erase failure history.
 - Runs are resumable from the last valid immutable artifact.
@@ -245,5 +245,23 @@ Decision:
 
 - The system will use a multi-tenant design rather than individual-user-only ownership.
 - A workspace or organization is the tenant boundary and owns projects, sources, pipeline runs, documents, artifacts, knowledge snapshots, retrieval activity, and usage records.
-- Authentication remains centralized in Django, while authorization and tenant isolation must be enforced consistently in Django, the authenticated FastAPI API, background workers, object storage access, search and vector retrieval, agent tools, and operator actions.
+- Authentication remains centralized in Django, while authorization and tenant isolation must be enforced consistently in Django, the authenticated FastAPI API, background workers, artifact access, search and vector retrieval, agent tools, and operator actions.
 - The exact PostgreSQL isolation mechanism, initial membership roles, token design, and quota model remain to be decided before the relational schema is specified.
+
+## 2026-09-24 — Local artifact storage
+
+Revised decision:
+
+- The initial local system will not deploy an object-storage service.
+- Pipeline code depends on an artifact-storage interface rather than filesystem calls spread across stages.
+- The first adapter writes to a persistent local filesystem path mounted through a Docker Compose named volume.
+- Database records store relative artifact keys rather than machine-specific absolute paths.
+- The filesystem layout remains tenant-aware, for example `workspaces/{workspace_id}/projects/{project_id}/artifacts/{artifact_id}`.
+- Artifact writes use a temporary file followed by atomic promotion after hashing and validation so readers never observe partial files.
+- Raw and derived data remain outside Git.
+- Backup, cleanup, quota, and deletion behavior must include the named volume.
+- A future S3-compatible adapter may implement the same interface without changing pipeline-stage contracts.
+
+Primary reference reviewed:
+
+- Docker volumes: https://docs.docker.com/engine/storage/volumes/
