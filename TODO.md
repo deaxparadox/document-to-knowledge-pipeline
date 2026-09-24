@@ -1,1 +1,2 @@
 - [x] FEAT-20260924-1305 — Set up the local project and create the public `deaxparadox/document-to-knowledge-pipeline` GitHub repository while keeping the root `AGENTS.md` untracked (spec: docs/specs/FEAT-20260924-1305-repository-setup.md) [2026-09-24 13:10]
+- [ ] FEAT-20260924-1316 — Build the first learning slice around an SEC 10-K filing: preserve source identity, process and validate the filing, structure its sections and Inline XBRL facts, and enable retrieval with citations; the company, filing selection rule, and technical design remain to be decided
