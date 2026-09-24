@@ -247,6 +247,8 @@ Decision:
 - A workspace or organization is the tenant boundary and owns projects, sources, pipeline runs, documents, artifacts, knowledge snapshots, retrieval activity, and usage records.
 - Authentication remains centralized in Django, while authorization and tenant isolation must be enforced consistently in Django, the authenticated FastAPI API, background workers, artifact access, search and vector retrieval, agent tools, and operator actions.
 - The exact PostgreSQL isolation mechanism, initial membership roles, token design, and quota model remain to be decided before the relational schema is specified.
+- Initial application roles are `owner`, `admin`, `member`, `viewer`, and `service`. Authorization code will use named permissions mapped from these roles rather than hard-coded role-name checks throughout the application.
+- Application roles are distinct from PostgreSQL connection roles. The database-role design remains part of the tenant-isolation decision.
 
 ## 2026-09-24 — Local artifact storage
 
