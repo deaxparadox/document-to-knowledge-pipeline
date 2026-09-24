@@ -238,3 +238,12 @@ Primary references reviewed:
 - Python entry-point specification: https://packaging.python.org/en/latest/specifications/entry-points/
 - OpenTelemetry instrumentation: https://opentelemetry.io/docs/concepts/instrumentation/
 - OpenTelemetry instrumentation scopes: https://opentelemetry.io/docs/concepts/instrumentation-scope/
+
+## 2026-09-24 — Tenancy direction
+
+Decision:
+
+- The system will use a multi-tenant design rather than individual-user-only ownership.
+- A workspace or organization is the tenant boundary and owns projects, sources, pipeline runs, documents, artifacts, knowledge snapshots, retrieval activity, and usage records.
+- Authentication remains centralized in Django, while authorization and tenant isolation must be enforced consistently in Django, the authenticated FastAPI API, background workers, object storage access, search and vector retrieval, agent tools, and operator actions.
+- The exact PostgreSQL isolation mechanism, initial membership roles, token design, and quota model remain to be decided before the relational schema is specified.
