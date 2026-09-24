@@ -150,3 +150,39 @@ Primary references reviewed:
 
 - SEC EDGAR APIs: https://www.sec.gov/search-filings/edgar-application-programming-interfaces
 - Accessing EDGAR data: https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data
+
+## 2026-09-24 — Service and database direction
+
+Decisions:
+
+- PostgreSQL will be the relational database.
+- Django is the only authority for relational schema changes through its models and migrations.
+- SQLAlchemy may read and write application data from the FastAPI processing service, but it may not create, alter, or drop database objects.
+- The intended model generator is `sqlacodegen`. It will run as a reproducible development/CI generation step after Django migrations are applied to a temporary database, not as runtime schema reflection.
+- Generated SQLAlchemy mappings will be treated as generated code and kept separate from manually written repositories and domain logic.
+- FastAPI will be exposed to authenticated clients rather than being an internal-only service.
+- Django remains the authentication and account authority. The exact mechanism by which FastAPI verifies Django-issued identity and authorization remains to be decided.
+- Heavy pipeline work will not run inside FastAPI request handlers. FastAPI will accept work and return a run identity; separate worker processes will execute queued stages.
+- The API and workers may share the same pipeline-service code and container image while running as separate processes.
+- A real message queue will be used so acknowledgements, retries, backpressure, and failure handling can be learned and observed. The broker and worker framework remain to be selected after delivery requirements are specified.
+- Database-to-queue transitions require a transactional outbox, and consumers must be idempotent because queued delivery is expected to be at least once.
+- Original and derived document artifacts belong in object storage; PostgreSQL stores their identities, metadata, hashes, state, relationships, and lineage.
+- Deterministic acquisition, parsing, validation, chunking, and indexing are kept separate from optional agentic enrichment and answer generation.
+
+Verified local toolchain:
+
+- Docker 29.5.2 and Docker Compose 5.1.3 are installed.
+- Python 3.11.6 is available through the Python launcher.
+- The default `python` executable points to Python 3.13.0a5, an alpha build, so container and development commands must pin an explicitly selected stable Python version.
+- Node.js 22.18.0, npm 11.19.1, and pnpm 11.25.0 are installed.
+- No project application dependencies have been selected or installed.
+
+Primary references reviewed:
+
+- Django migrations: https://docs.djangoproject.com/en/6.0/topics/migrations/
+- FastAPI background-task guidance: https://fastapi.tiangolo.com/tutorial/background-tasks/
+- SQLAlchemy reflection: https://docs.sqlalchemy.org/en/20/core/reflection.html
+- `sqlacodegen`: https://github.com/agronholm/sqlacodegen
+- Transactional outbox pattern: https://docs.aws.amazon.com/en_en/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html
+- RabbitMQ reliability concepts: https://www.rabbitmq.com/docs/reliability
+- Next.js route groups: https://nextjs.org/docs/app/api-reference/file-conventions/route-groups
