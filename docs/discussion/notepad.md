@@ -213,3 +213,28 @@ Initial relational domains identified:
 - Validation results, document sections, document tables, and financial facts.
 - Knowledge snapshots, chunks, embeddings, and index records.
 - Retrieval runs, retrieval hits, generation runs, agent tool calls, and citations.
+
+## 2026-09-24 — Extensibility and component isolation
+
+Decision:
+
+- Flexibility comes from stable, versioned contracts and replaceable adapters, not from a generic workflow language or premature microservices.
+- Source connectors discover and acquire immutable raw artifacts but do not parse or index them. API, scraper, upload, and object-storage connectors are separate implementations of the same contract.
+- Parsers are selected by validated content capabilities and signatures rather than source names or filename extensions.
+- Parsers produce a source-independent canonical block model with headings, paragraphs, lists, tables, figures, footnotes, facts, ordering, and precise source locators.
+- Source-specific metadata uses validated, namespaced extensions instead of adding source-specific fields to every canonical document.
+- Versioned pipeline definitions compose reusable connectors, parsers, validators, enrichers, chunkers, embedding providers, and index adapters for a particular source and document type.
+- New sources begin as explicitly registered in-repository adapters. Standard Python package entry points may be introduced later only if independently distributed plugins become necessary.
+- A central stage runner owns contract validation, attempt creation, trace propagation, idempotency, execution, artifact persistence, output validation, lineage, outbox emission, and terminal-state handling.
+- Queue tasks are durable retry boundaries, not arbitrary function boundaries. Small internal operations remain ordinary functions with child trace spans.
+- Every contract has a reusable compliance suite. Testing covers units, adapter contracts, golden fixtures, offline replay, infrastructure integration, injected failures, required telemetry, end-to-end snapshots, retrieval evaluation, and Django-to-SQLAlchemy schema drift.
+- Standard stage telemetry includes lifecycle counts, duration, queue wait, artifact sizes, validation outcomes, worker concurrency, and oldest-message age. Unique run and artifact identities belong in correlated traces and logs rather than metric labels.
+- All outputs record pipeline, stage, contract, configuration, source-artifact, and code versions so stored artifacts can be replayed through newer processing logic without redownloading the source.
+- The orchestration core must not contain source-specific conditionals, queue document bodies, grant plugins arbitrary database access, or permit adapters to opt out of required telemetry and lineage.
+
+Primary references reviewed:
+
+- Python plugin discovery: https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/
+- Python entry-point specification: https://packaging.python.org/en/latest/specifications/entry-points/
+- OpenTelemetry instrumentation: https://opentelemetry.io/docs/concepts/instrumentation/
+- OpenTelemetry instrumentation scopes: https://opentelemetry.io/docs/concepts/instrumentation-scope/
