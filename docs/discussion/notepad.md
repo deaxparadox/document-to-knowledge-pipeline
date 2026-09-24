@@ -249,6 +249,12 @@ Decision:
 - The exact PostgreSQL isolation mechanism, initial membership roles, token design, and quota model remain to be decided before the relational schema is specified.
 - Initial application roles are `owner`, `admin`, `member`, `viewer`, and `service`. Authorization code will use named permissions mapped from these roles rather than hard-coded role-name checks throughout the application.
 - Application roles are distinct from PostgreSQL connection roles. The database-role design remains part of the tenant-isolation decision.
+- Tenant-owned operational tables will use ordinary, default-deny PostgreSQL row-level security from the initial schema.
+- The schema-owning migration role is separate from non-owning Django and pipeline runtime roles. Runtime roles receive neither DDL privileges nor `BYPASSRLS`.
+- Runtime transactions establish an explicit, transaction-local workspace context. Missing tenant context must expose no tenant rows.
+- Tenant isolation is also enforced through application authorization, explicit tenant-aware repository contracts, composite database constraints, and two-tenant negative tests.
+- Global identity and workspace-membership discovery tables will initially use strict application authorization rather than the same workspace RLS policy, because membership must be discovered before selecting a workspace context.
+- `FORCE ROW LEVEL SECURITY` is deferred. It will be reconsidered before production after Django migrations, data backfills, administrative operations, pooled connections, FastAPI requests, and queued workers have been tested with ordinary RLS.
 
 ## 2026-09-24 — Local artifact storage
 
