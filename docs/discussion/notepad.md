@@ -186,3 +186,30 @@ Primary references reviewed:
 - Transactional outbox pattern: https://docs.aws.amazon.com/en_en/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html
 - RabbitMQ reliability concepts: https://www.rabbitmq.com/docs/reliability
 - Next.js route groups: https://nextjs.org/docs/app/api-reference/file-conventions/route-groups
+
+## 2026-09-24 — Pipeline execution structure
+
+Decision:
+
+- The system has two connected flows: an asynchronous ingestion pipeline that publishes versioned knowledge snapshots, and an authenticated online retrieval pipeline that queries a selected published snapshot.
+- PostgreSQL is the durable source of execution state. The message queue is a delivery mechanism and never the only record of work.
+- Creating a run writes the run, initial stage graph, and an outbox event in one transaction. FastAPI returns `202 Accepted` with the run identity.
+- An outbox publisher transfers committed work to the queue. Separate workers execute durable stages.
+- Queue messages carry versioned identifiers, idempotency keys, and trace context, not document bodies.
+- Stage outputs are immutable artifacts in object storage with PostgreSQL metadata and lineage edges.
+- Every stage has explicit input/output contracts, configuration hashes, retry and timeout policies, validation results, telemetry, and terminal state.
+- Stage attempts are separate from logical stages so retries do not erase failure history.
+- Runs are resumable from the last valid immutable artifact.
+- The approved ingestion stages are source resolution, acquisition, source validation, parallel filing and XBRL parsing, canonical normalization, cross-validation, optional enrichment, structure-aware chunking, embedding, indexing, quality gating, and atomic knowledge-snapshot publication.
+- A required quality gate prevents incomplete or invalid indexes from becoming active.
+- Retrieval records the authenticated subject, project, snapshot, query configuration, retrieved chunks and scores, evidence package, model and prompt versions, tool calls, citations, timing, and validation results.
+- Deterministic ingestion creates trusted knowledge. Agentic behavior consumes it through bounded, typed, audited tools and cannot bypass required validation.
+- Django models and migrations define relational tables. Pydantic/JSON Schema contracts independently define APIs, messages, and document artifacts. OpenTelemetry and OpenLineage conventions define telemetry and lineage contracts.
+
+Initial relational domains identified:
+
+- Pipeline definitions, runs, stages, attempts, outbox events, and processed-message identities.
+- Source documents, source artifacts, derived artifacts, and artifact-lineage edges.
+- Validation results, document sections, document tables, and financial facts.
+- Knowledge snapshots, chunks, embeddings, and index records.
+- Retrieval runs, retrieval hits, generation runs, agent tool calls, and citations.
