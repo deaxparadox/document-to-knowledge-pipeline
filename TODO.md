@@ -1,0 +1,1 @@
+- [x] FEAT-20260924-1305 — Set up the local project and create the public `deaxparadox/document-to-knowledge-pipeline` GitHub repository while keeping the root `AGENTS.md` untracked (spec: docs/specs/FEAT-20260924-1305-repository-setup.md) [2026-09-24 13:10]
