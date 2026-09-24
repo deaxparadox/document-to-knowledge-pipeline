@@ -87,3 +87,49 @@ Primary references reviewed:
 - SEC access and fair-use guidance: https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data
 - SEC EDGAR APIs: https://www.sec.gov/search-filings/edgar-application-programming-interfaces
 - Proposed PayPal filing index: https://www.sec.gov/Archives/edgar/data/1633917/000163391726000024/0001633917-26-000024-index.htm
+
+## 2026-09-24 — First filing and operational requirements
+
+Decisions:
+
+- The first document is PayPal's 2025 Form 10-K, pinned to SEC accession `0001633917-26-000024`.
+- Monitoring, observability, and traceability are core system requirements from the first runnable vertical slice.
+- The pipeline will initially remain one well-instrumented application. It will not be split into microservices merely to demonstrate distributed tracing.
+- OpenTelemetry's vendor-neutral model will be used for correlated traces, metrics, and structured logs. The telemetry backend remains undecided.
+- Trace context will follow the W3C Trace Context standard.
+- Persistent data lineage will use the OpenLineage concepts of jobs, runs, input datasets, output datasets, and data-quality assertions. Whether the implementation needs the OpenLineage package or only compatible internal contracts remains undecided.
+- Because observability and lineage are cross-cutting design choices, an ADR will be required before their implementation spec.
+
+Required end-to-end lineage:
+
+`SEC filing -> downloaded bytes -> parsed document -> validated structure -> sections and financial facts -> chunks -> embeddings/index entries -> retrieval result -> cited answer`
+
+Minimum correlation and provenance:
+
+- Every execution has a pipeline run ID and an OpenTelemetry trace ID.
+- Every stage emits correlated traces, metrics, and structured logs.
+- Every source artifact records SEC identifiers, URL, retrieval time, size, content type, and SHA-256 hash.
+- Every derived artifact records its parent artifacts, processing stage, code version, configuration version, and parser version.
+- Every validation records its assertion, expected and observed values, severity, and outcome.
+- Every chunk identifies its structured section and precise source location.
+- Every retrieval records query identity, chunk identities, retrieval scores, and timing.
+- Every generated answer records the retrieved evidence, citations, and relevant model/version information.
+- Failures and fallbacks are explicit and observable; stages may not silently skip work.
+
+Initial monitoring coverage:
+
+- SEC request success, latency, retries, and rate-limit responses.
+- Pipeline runs completed, failed, or stuck at each stage.
+- Parsing warnings and extracted section, table, and fact counts.
+- Validation pass and failure counts.
+- Chunk, embedding, and indexing counts and failures.
+- Indexing delay and retrieval latency.
+- Empty retrieval results and citation coverage.
+- Numeric-answer agreement with filing-specific XBRL facts.
+
+Primary references reviewed:
+
+- OpenTelemetry signals: https://opentelemetry.io/docs/concepts/signals/
+- W3C Trace Context: https://www.w3.org/TR/trace-context/
+- OpenLineage object model: https://openlineage.io/docs/spec/object-model/
+- OpenLineage data-quality assertions: https://openlineage.io/docs/spec/facets/dataset-facets/data_quality_assertions/
