@@ -133,3 +133,20 @@ Primary references reviewed:
 - W3C Trace Context: https://www.w3.org/TR/trace-context/
 - OpenLineage object model: https://openlineage.io/docs/spec/object-model/
 - OpenLineage data-quality assertions: https://openlineage.io/docs/spec/facets/dataset-facets/data_quality_assertions/
+
+## 2026-09-24 — Source formats and canonical JSON
+
+Decision:
+
+- Source acquisition is hybrid rather than JSON-only.
+- SEC submission and company-facts APIs provide JSON discovery metadata and standardized financial facts.
+- Complete filing content is acquired from EDGAR as original Inline XBRL/HTML, XBRL/XML, raw submission text, and related filing artifacts.
+- Original SEC bytes are retained and hashed as immutable evidence.
+- The pipeline produces its own canonical JSON representation containing document identity, sections, tables, financial facts, validation results, and lineage.
+- The generated canonical JSON does not replace the source artifacts; every derived object must link back to exact source evidence.
+- The acquisition boundary must expose SEC access failures. A read-only verification request from the development environment received SEC's automated-traffic rejection, reinforcing the need for a genuine configurable contact identity, compliant request pacing, caching, and observable `403` handling.
+
+Primary references reviewed:
+
+- SEC EDGAR APIs: https://www.sec.gov/search-filings/edgar-application-programming-interfaces
+- Accessing EDGAR data: https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data
