@@ -69,3 +69,21 @@ Primary references reviewed:
 - SEC EDGAR APIs: https://www.sec.gov/search-filings/edgar-application-programming-interfaces
 - SEC Inline XBRL: https://www.sec.gov/data-research/structured-data/inline-xbrl
 - RBI notifications: https://www.rbi.org.in/Scripts/NotificationUser.aspx/searchnew/BS_ViewMasterCirculardetails.aspx
+
+## 2026-09-24 — Dataset source and reproducibility
+
+Decision:
+
+- The official SEC EDGAR system is the authoritative dataset source; the project will not depend on a third-party repackaged dataset.
+- Version 1 will pin a specific filing accession number rather than dynamically changing when a newer filing appears.
+- The source snapshot will be described by a committed manifest containing source URLs, SEC identifiers, retrieval timestamps, content types, byte sizes, and cryptographic hashes.
+- Large raw filing artifacts will be downloaded into ignored local storage rather than committed to Git.
+- The ingestion client will use a declared `User-Agent`, cache downloaded artifacts, and respect the SEC's current fair-access limit of 10 requests per second.
+
+For the proposed PayPal 2025 10-K, the source set consists of the SEC filing index, primary Inline XBRL HTML document, extracted XBRL instance, complete raw submission, company submissions JSON, and company facts JSON. PayPal and accession `0001633917-26-000024` remain proposed until explicitly approved as the first filing.
+
+Primary references reviewed:
+
+- SEC access and fair-use guidance: https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data
+- SEC EDGAR APIs: https://www.sec.gov/search-filings/edgar-application-programming-interfaces
+- Proposed PayPal filing index: https://www.sec.gov/Archives/edgar/data/1633917/000163391726000024/0001633917-26-000024-index.htm
